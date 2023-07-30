@@ -66,5 +66,4 @@ function main() {
     (window as any).state = gameState
 }
 
-
 main();

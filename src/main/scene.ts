@@ -1,4 +1,4 @@
-import { AnimationMixer, BoxGeometry, GridHelper, Mesh, MeshStandardMaterial, Scene } from "three";
+import { AnimationMixer, BoxGeometry, GridHelper, Mesh, MeshStandardMaterial, Object3D, Scene } from "three";
 import { gameCongig } from "../data";
 import { IModelConfig } from "../types";
 import path from "path-browserify";
@@ -21,60 +21,70 @@ export class GameScene extends Scene {
         }
 
         if (gameCongig.models) {
-            gameCongig.models.forEach((modelData, index) => {
-                this._loadModel(modelData)
+            gameCongig.models.forEach(async (modelData, index) => {
+                await this._loadModel(modelData)
             })
         }
 
+        this._onReady()
+
     }
-    _loadModel(modelData: IModelConfig) {
-        const dirPath = path.dirname(modelData.src);
-        const modelName = path.basename(modelData.src);
+    _loadModel(modelData: IModelConfig): Promise<Object3D> {
+        return new Promise((resolve) => {
+            const dirPath = path.dirname(modelData.src);
+            const modelName = path.basename(modelData.src);
 
-        loaders.gltfLoader.setPath(dirPath + '/')
-        loaders.gltfLoader.load(modelName, (gltf) => {
-            if (gltf.animations) {
-                let animationMixer = new AnimationMixer(gltf.scene);
-                animationMixer.timeScale = 1
-                let actions = []
+            loaders.gltfLoader.setPath(dirPath + '/')
+            loaders.gltfLoader.load(modelName, (gltf) => {
+                if (gltf.animations) {
+                    let animationMixer = new AnimationMixer(gltf.scene);
+                    animationMixer.timeScale = 1
+                    let actions = []
 
-                gltf.animations.forEach((animationClip) => {
-                    actions.push(animationMixer.clipAction(animationClip))
-                })
+                    gltf.animations.forEach((animationClip) => {
+                        actions.push(animationMixer.clipAction(animationClip))
+                    })
 
-                actions.forEach((action) => {
-                    action.enabled = true
-                    action.play()
-                })
+                    actions.forEach((action) => {
+                        action.enabled = true
+                        action.play()
+                    })
 
-                this.animationMixers.push(animationMixer)
-            }
+                    this.animationMixers.push(animationMixer)
+                }
 
-            if (modelData.lightScale !== undefined) {
-                gltf.scene.traverse((object) => {
-                    if (object.isLight) {
-                        if (modelData.lightScale > 0) {
-                            object.intensity *= modelData.lightScale;
-                        } else {
-                            object.visible = false
+                if (modelData.lightScale !== undefined) {
+                    gltf.scene.traverse((object) => {
+                        if (object.isLight) {
+                            if (modelData.lightScale > 0) {
+                                object.intensity *= modelData.lightScale;
+                            } else {
+                                object.visible = false
+                            }
                         }
-                    }
-                })
-            }
+                    })
+                }
 
-            gltf.scene.scale.setScalar(gameCongig.unitScale)
+                gltf.scene.scale.setScalar(gameCongig.unitScale)
 
-            if (modelData.scale !== undefined) {
-                gltf.scene.scale.setScalar(modelData.scale * gameCongig.unitScale)
-            }
+                if (modelData.scale !== undefined) {
+                    gltf.scene.scale.setScalar(modelData.scale * gameCongig.unitScale)
+                }
 
-            if (modelData.translate !== undefined) {
-                gltf.scene.position.set(modelData.translate[0], modelData.translate[1], modelData.translate[2])
-            }
+                if (modelData.translate !== undefined) {
+                    gltf.scene.position.set(modelData.translate[0], modelData.translate[1], modelData.translate[2])
+                }
 
-            this.add(gltf.scene)
+                this.add(gltf.scene);
+                resolve(gltf.scene);
+            })
         })
     }
+
+    _onReady() {
+        console.log(`scene is ready`)
+    }
+
     update(frameDelta: number) {
         this.animationMixers.forEach(mixer => mixer.update(frameDelta / 1000))
     }
