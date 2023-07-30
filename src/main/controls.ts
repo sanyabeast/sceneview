@@ -1,9 +1,10 @@
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { state } from './main';
 
 export class GameCameraControl extends OrbitControls {
-    constructor(camera, domElement) {
-        super(camera, domElement)
+    constructor() {
+        super(state.defaultCamera, state.renderer.domElement)
 
         this.screenSpacePanning = false;
         this.minDistance = 20;
@@ -13,5 +14,11 @@ export class GameCameraControl extends OrbitControls {
         this.enableDamping = true
         this.dampingFactor = 0.005
         this.panSpeed = 1
+    }
+
+    override update(): boolean {
+        super.update()
+
+        return false
     }
 }

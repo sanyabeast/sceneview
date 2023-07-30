@@ -1,8 +1,9 @@
 import { DirectionalLight, Group, TextureLoader, EquirectangularReflectionMapping, SRGBColorSpace, HemisphereLight, Fog, FogExp2, Color, Light, Scene, AmbientLight, PointLight, SpotLight, RectAreaLight } from "three";
 import { Lensflare, LensflareElement } from "three/examples/jsm/objects/LensFlare"
-import { gameCongig as gameConfig, gameState } from "../data";
+import { config } from "../config";
 import { ELightType, IStandaloneFlareConfig, ILightConfig } from "../types";
 import { loaders } from "./loaders";
+import { state } from "./main";
 
 const flaresTable = [
     {
@@ -37,42 +38,48 @@ export class GameEnvironment extends Group {
     ambient: AmbientLight = null
     fog: FogExp2 = null
     flares: Lensflare[]
+    lights: Light[]
 
     constructor() {
         super()
 
         this.flares = []
+        this.lights = []
 
-        if (gameConfig.fog) {
-            this.fog = new FogExp2(gameConfig.fog.color, gameConfig.fog.density)
+        if (config.fog) {
+            this.fog = new FogExp2(config.fog.color, config.fog.density)
         }
 
-        if (gameConfig.lights) {
-            gameConfig.lights.forEach((lightData, index) => {
+        if (config.lights) {
+            config.lights.forEach((lightData, index) => {
                 this._createLight(lightData)
             })
         }
 
-        if (gameConfig.flares) {
-            gameConfig.flares.forEach((flareData, index) => {
+        if (config.flares) {
+            config.flares.forEach((flareData, index) => {
                 this._createFlare(flareData)
             })
         }
         // Create the lens flare object
 
-        if (gameConfig.background) {
-            let envMap = loaders.rgbeLoader.load(gameConfig.background.map, () => {
+        if (config.background) {
+            let envMap = loaders.rgbeLoader.load(config.background.map, () => {
                 envMap.mapping = EquirectangularReflectionMapping;
                 envMap.colorSpace = SRGBColorSpace;
 
-                gameState.scene.background = envMap;
-                gameState.scene.environment = envMap;
-                gameState.scene.backgroundIntensity = gameConfig.background.intensity
-                gameState.scene.backgroundBlurriness = gameConfig.background.blurriness
+                state.scene.background = envMap;
+                state.scene.environment = envMap;
+                state.scene.backgroundIntensity = config.background.intensity
+                state.scene.backgroundBlurriness = config.background.blurriness
+
+                state.envIsReady = true
             });
+        } else {
+            state.envIsReady = true
         }
 
-
+        state.scene.add(this)
     }
 
     _createLight(lightData: ILightConfig): void {
@@ -100,11 +107,11 @@ export class GameEnvironment extends Group {
             }
         }
 
-        if (lightData.position) {
+        if (lightData.position !== undefined) {
             light.position.set(lightData.position[0], lightData.position[1], lightData.position[2])
         }
 
-        if (lightData.flare) {
+        if (lightData.flare !== undefined) {
             this._createFlare({
                 ...lightData.flare,
                 position: [lightData.position[0], lightData.position[1], lightData.position[2]],
@@ -112,7 +119,10 @@ export class GameEnvironment extends Group {
             })
         }
 
+        light.castShadow = lightData.castShadow === true
+
         this.add(light)
+        this.lights.push(light)
     }
 
     _createFlare(flareConfig: IStandaloneFlareConfig) {

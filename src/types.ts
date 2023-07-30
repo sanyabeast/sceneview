@@ -23,6 +23,7 @@ export interface ILightConfig {
     penumbra?: number
     width?: number
     height?: number
+    castShadow?: boolean
 }
 
 export interface ILightFlareConfig {
@@ -35,29 +36,41 @@ export interface IStandaloneFlareConfig extends ILightFlareConfig {
     color: number
 }
 
-
 export interface IModelConfig {
     src: string,
-    scale: number
+    scale?: number
     lightScale?: number
     translate?: number[]
+    castShadow?: boolean
+    receiveShadow?: boolean
+    envIntensity?: number
+    emissiveIntensity?: number
 }
 
-export interface IGameState {
-    renderer: WebGLRenderer,
-    scene: GameScene,
-    camera: Camera,
-    canvas: HTMLCanvasElement,
-    environment: GameEnvironment,
-    controls: GameCameraControls,
+export interface IState {
+    renderer: WebGLRenderer
+    scene: GameScene
+    camera: Camera
+    defaultCamera: Camera
+    canvas: HTMLCanvasElement
+    environment: GameEnvironment
+    controls: GameCameraControls
+    sceneIsReady: boolean
+    envIsReady: boolean
 }
 
-export interface IGameConfig {
+export interface IShadowRenderingSettings {
+    enabled: boolean
+    autoUpdate?: boolean
+}
+
+export interface IConfig {
     unitScale: number
     cameraNearClip: number
     cameraFarClip: number
     cameraDefaultFov: number
     logarithmicDepthBuffer: boolean
+    shadows: IShadowRenderingSettings
     fog?: {
         density: number
         color: number

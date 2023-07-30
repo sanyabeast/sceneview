@@ -1,21 +1,16 @@
 
-import { ELightType, IGameConfig, IGameState } from "./types"
+import { ELightType, IConfig } from "./types"
 
-export const gameState: IGameState = {
-    renderer: null,
-    scene: null,
-    camera: null,
-    canvas: null,
-    environment: null,
-    controls: null,
-}
-
-export const gameCongig: IGameConfig = {
+export const config: IConfig = {
     unitScale: 0.1,
     cameraNearClip: 0.1,
     cameraFarClip: 10000,
     cameraDefaultFov: 60,
     logarithmicDepthBuffer: true,
+    shadows: {
+        enabled: true,
+        autoUpdate: true
+    },
     // default fogging
     fog: {
         density: 0.1,
@@ -38,18 +33,20 @@ export const gameCongig: IGameConfig = {
                 size: 1,
                 distance: 1,
                 count: 4
-            }
+            },
+            castShadow: true
         },
         {
             type: ELightType.Point,
-            position: [0, 0, 50],
-            intensity: 0.5,
+            position: [26, 38, 0],
+            intensity: 2,
             color: 0xff0000,
             flare: {
                 size: 1,
                 distance: 1,
                 count: 1
-            }
+            },
+            castShadow: true
         }
     ],
     // additional flares
@@ -74,19 +71,26 @@ export const gameCongig: IGameConfig = {
         {
             src: 'assets/models/littlest_tokyo.glb',
             scale: 1,
-            lightScale: 0
+            lightScale: 0,
+            receiveShadow: true,
+            envIntensity: 1,
+            emissiveIntensity: 10
         },
         {
             src: 'assets/models/parrot.glb',
             scale: 1,
             lightScale: 0,
-            translate: [0, 25, 0]
+            translate: [0, 25, 0],
+            castShadow: true,
+            envIntensity: 1
         },
         {
             src: 'assets/models/parrot.glb',
             scale: 1,
             lightScale: 0,
-            translate: [25, 35, 0]
+            translate: [25, 35, 0],
+            castShadow: true,
+            envIntensity: 1
         }
     ]
 }
